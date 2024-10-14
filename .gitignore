@@ -129,16 +129,12 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-src/aria/
-src/aria/*
-public
+client/src/aria/
+client/src/aria/*
+assets/*
 .replit
+server/node_modules
+client/node_modules
 
 # Config files, to add later
 package-lock.json
-package.json
-postcss.config.js
-tailwind.config.js
-tsconfig.json
-tsconfig.node.json
-vite.config.js

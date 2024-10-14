@@ -5,6 +5,10 @@ export type User = {
   followers: Array<string>;
 }
 
+export type VideoData = {
+  scores: ScoreParams
+}
+
 export type ScoreParams = {
   lG:number, 
   lU:number, 
@@ -20,7 +24,7 @@ export type Criterias = {
   }
 };
 
-export type VideoData = {
+export type TournesolRow = {
   video: string,
   criteria: string,
   score: string,
