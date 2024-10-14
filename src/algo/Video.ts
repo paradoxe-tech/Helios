@@ -1,40 +1,7 @@
 import * as Norm from './Normalize';
 import Papa from 'papaparse';
 import * as fs from 'fs';
-
-type User = {
-  username: string;
-  history: Array<{id: string, author: string}>;
-  following: Array<string>;
-  followers: Array<string>;
-}
-
-type ScoreParams = {
-  lG:number, 
-  lU:number, 
-  lA:number
-};
-
-type Criterias = {
-  [key: string]: { 
-    score:number, 
-    uncertainty:number 
-  }
-};
-
-type VideoData = {
-  video: string,
-  criteria: string,
-  score: string,
-  uncertainty: string
-};
-
-type VideoScore = {
-  platform_performance: number,
-  predicted_appreciation: number,
-  tournesol_recommendability: number,
-  score: number
-};
+import { User, VideoData, VideoScore, Criterias, ScoreParams } from './types';
 
 export default class Video {
 
