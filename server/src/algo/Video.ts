@@ -20,7 +20,7 @@ export default class Video {
   views!: Array<string>;
   release!: Date;
   duration!: string;
-  authorAvatar!: string;
+  avatar!: string;
   sensitive!: boolean;
   childish!: boolean;
 
@@ -69,9 +69,9 @@ export default class Video {
           throw new Error(`No channel for ${result.snippet.channelId}`);
         const avatarUrl = data.items[0].snippet.thumbnails.default.url;
 
-        video.authorAvatar = avatarUrl;
+        video.avatar = avatarUrl;
       } catch (error) {
-        video.authorAvatar = "none";
+        video.avatar = "none";
       }
 
       // a new Video instance will be returned
