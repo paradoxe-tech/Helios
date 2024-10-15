@@ -4,6 +4,7 @@
   "main": "index.html",
   "type": "module",
   "scripts": {
+    "build": "vite build",
     "dev": "vite"
   },
   "author": "paradoxe-tech",

@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.0.0",
   "scripts": {
-    "client": "cd client && npm run dev",
+    "client": "cd client && npm run build",
     "server": "cd server && npm run dev",
     "start": "npm-run-all --parallel client server"
   },
