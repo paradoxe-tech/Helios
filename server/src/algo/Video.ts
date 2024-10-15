@@ -179,12 +179,11 @@ export default class Video {
     let res = 0;
     let parameters = { ...params };
 
-    // compute the values asynchronously
-    let G = await this.G();
+    const [G, A, U] = await Promise.all([this.G(), this.A(user), this.U()]);
+
+    // update scalars if scores are not available
     if (G == -2) parameters.lG = 0;
-    let A = await this.A(user);
     if (A == -2) parameters.lA = 0;
-    let U = await this.U();
     if (U == -2) parameters.lU = 0;
 
     // scale each value by its prodived scalar
