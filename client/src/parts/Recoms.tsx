@@ -7,12 +7,12 @@ import * as defaults from '../../../shared/defaults';
 
 const tags = defaults.tags;
 
-export function Recoms() {
-  const [selectedTag, setSelectedTag] = useState("All");
+export function Recoms({ setScores }) {
+  const [selectedTag, setSelectedTag] = useState("Tout");
   const [videos, setVideos] = useState<types.VideoData[]>([]);
 
   useEffect(() => {
-    fetch("/api/videos/10")
+    fetch("/api/videos/50")
       .then((response) => response.json())
       .then((data) => setVideos(data))
       .catch((error) => console.error("Error fetching videos:", error));
@@ -27,19 +27,20 @@ export function Recoms() {
           Tournesol
         </Switch>
       </div>
-      <VideoGrid videos={videos} />
+      <VideoGrid videos={videos} setScores={setScores}/>
     </div>
   );
 }
 
-function VideoGrid({ videos }) {
+function VideoGrid({ videos, setScores }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div className="flex flex-wrap gap-6">
       {videos.map((videoData:types.VideoData, index: number) => {
         return (
           <VideoPreview
             key={index}
             videoData={videoData}
+            onMouseEnter={() => setScores(videoData.scores)}
           />
         );
       })}
