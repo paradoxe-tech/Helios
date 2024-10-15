@@ -20,8 +20,7 @@ async function recommend(
     let video = await Video.create(id, process.env["YOUTUBE_API_KEY"]);
 
     // pre-filter the dataset to avoid useless compute units
-    if (params.content_language.length == 0)
-      console.info(`No language filter ; accept all.`);
+    if (params.content_language.length == 0) {}
     else if (!params.content_language.includes(video.language)) continue;
     if (!params.allow_sensitive && video.sensitive) continue;
     if (params.strict_child_mode && !video.childish) continue;

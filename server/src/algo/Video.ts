@@ -129,10 +129,7 @@ export default class Video {
     });
 
     // if no tournesol data, set scalar to 0
-    if (!tournesol["largely_recommended"]) {
-      console.info(`No Tournesol score found ; setting lU to 0.`);
-      return -2;
-    }
+    if (!tournesol["largely_recommended"]) return -2;
 
     // keep the sign while /100 and normalizing to [0,1]
     let score = tournesol["largely_recommended"].score;
@@ -151,10 +148,7 @@ export default class Video {
   async A(user:types.User): Promise<number> {
     let proba = 0;
 
-    if (user.following.length == 0 && user.history.length == 0) {
-      console.info(`Nothing can be inferred from user data ; setting lA to 0.`);
-      return -2;
-    }
+    if (user.following.length == 0 && user.history.length == 0) return -2;
 
     // user is following the author
     if (user.following.includes(this.author)) proba += 0.5;
