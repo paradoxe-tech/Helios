@@ -35,16 +35,11 @@ export function Recoms() {
 function VideoGrid({ videos }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {videos.map((vd: types.VideoData, index: number) => {
+      {videos.map((videoData:types.VideoData, index: number) => {
         return (
           <VideoPreview
             key={index}
-            thumbnail={vd.video.thumbnail}
-            title={vd.video.title}
-            views={vd.video.views.length}
-            duration={vd.video.duration}
-            channel={vd.video.author}
-            avatar={vd.video.authorAvatar}
+            videoData={videoData}
           />
         );
       })}
