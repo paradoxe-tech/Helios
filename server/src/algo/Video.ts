@@ -8,7 +8,32 @@ import path, { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const ROOT = path.resolve(__dirname, '../../../')
+const ROOT = path.resolve(__dirname, '../../../');
+
+const tournesolMap = new Map();
+
+async function preloadTournesol(csvPath:string) {
+  return new Promise((resolve, reject) => {
+    const fileStream = fs.createReadStream(csvPath);
+    Papa.parse(fileStream, {
+      header: true,
+      step: (result:{data: types.TournesolRow}) => {
+        const row = result.data;
+        if (row.video) {
+          tournesolMap.set(row.video, {
+            score: +row.score,
+            uncertainty: +row.uncertainty,
+          });
+        }
+      },
+      complete: () => resolve(null),
+      error: (error) => reject(error),
+    });
+  });
+}
+
+// preload CSV once when app starts
+await preloadTournesol(path.join(ROOT, "/assets/tournesol.csv"));
 
 export default class Video {
   id: string;
@@ -104,32 +129,10 @@ export default class Video {
    * @returns {Promise<number>} : the recommendability score component
    */
   async U(): Promise<number> {
-    let tournesol:types.Criterias = await new Promise((resolve, reject) => {
-      const criterias:types.Criterias = {};
-
-      // will search video scores through Tournesol CSV file
-      const csvPath = path.join(ROOT, "/assets/tournesol.csv")
-      const fileStream = fs.createReadStream(csvPath);
-      Papa.parse(fileStream, {
-        header: true, // will use first line to name columns
-        step: (result: { data: types.TournesolRow }) => {
-          const row = result.data as types.TournesolRow;
-
-          // is one of the video criterias
-          if (row.video === this.id) {
-            criterias[row.criteria] = {
-              score: +row.score, // converted to numbers
-              uncertainty: +row.uncertainty,
-            };
-          }
-        }, // promise resolving / rejection handling
-        complete: () => resolve(criterias),
-        error: (error: string) => reject(error),
-      });
-    });
+    const tournesol = tournesolMap.get(this.id);
 
     // if no tournesol data, set scalar to 0
-    if (!tournesol["largely_recommended"]) return -2;
+    if (!tournesol || !tournesol["largely_recommended"]) return -2;
 
     // keep the sign while /100 and normalizing to [0,1]
     let score = tournesol["largely_recommended"].score;
