@@ -1,21 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { VideoPreview } from "./VideoPreview";
 import { Tags } from "./Tags";
 import { Switch } from "../aria/Switch";
+import * as types from '../../../shared/types';
+import * as defaults from '../../../shared/defaults';
 
-const tags = ["All", "Music", "Gaming", "News", "Sports", "Education", "Movies"];
-
-const template_user = {
-  username: "test",
-  following: [],
-  history: [],
-  followers: []
-}
-
-let videos = []
+const tags = defaults.tags;
 
 export function Recoms() {
   const [selectedTag, setSelectedTag] = useState("All");
+  const [videos, setVideos] = useState<types.VideoData[]>([]);
+
+  useEffect(() => {
+    fetch("/api/videos/10")
+      .then((response) => response.json())
+      .then((data) => setVideos(data))
+      .catch((error) => console.error("Error fetching videos:", error));
+  }, []);
 
   return (
     <div className="px-6 w-full py-4 min-h-screen bg-white">
@@ -34,18 +35,18 @@ export function Recoms() {
 function VideoGrid({ videos }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {videos.map((video, index:number) => {
+      {videos.map((vd: types.VideoData, index: number) => {
         return (
           <VideoPreview
             key={index}
-            thumbnail={video.thumbnail}
-            title={video.title}
-            views={video.views.length}
-            duration={video.duration}
-            channel={video.author}
-            avatar={video.authorAvatar}
+            thumbnail={vd.video.thumbnail}
+            title={vd.video.title}
+            views={vd.video.views.length}
+            duration={vd.video.duration}
+            channel={vd.video.author}
+            avatar={vd.video.authorAvatar}
           />
-      )
+        );
       })}
     </div>
   );
