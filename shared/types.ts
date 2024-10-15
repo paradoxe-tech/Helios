@@ -1,3 +1,5 @@
+import Video from '../server/src/algo/Video';
+
 export type User = {
   username: string;
   history: Array<{id: string, author: string}>;
@@ -6,7 +8,8 @@ export type User = {
 }
 
 export type VideoData = {
-  scores: ScoreParams
+  scores: VideoScore;
+  video: Video;
 }
 
 export type ScoreParams = {
@@ -14,7 +17,8 @@ export type ScoreParams = {
   lU:number, 
   lA:number,
   allow_sensitive: boolean,
-  content_language: string
+  content_language: Array<string>,
+  strict_child_mode: boolean;
 };
 
 export type Criterias = {

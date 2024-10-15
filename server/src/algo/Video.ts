@@ -1,13 +1,14 @@
 import * as Norm from "./Normalize";
 import Papa from "papaparse";
-import * as fs from "fs";
-import {
-  User,
-  TournesolRow,
-  VideoScore,
-  Criterias,
-  ScoreParams,
-} from "../../../shared/types";
+import fs from "fs";
+import * as types from "../../../shared/types";
+
+import { fileURLToPath } from 'url';
+import path, { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const ROOT = path.resolve(__dirname, '../../../')
 
 export default class Video {
   id: string;
@@ -20,6 +21,8 @@ export default class Video {
   release!: Date;
   duration!: string;
   authorAvatar!: string;
+  sensitive!: boolean;
+  childish!: boolean;
 
   constructor(id: string) {
     this.id = id;
@@ -30,7 +33,7 @@ export default class Video {
     let video = new Video(id);
     let url = "https://www.googleapis.com/youtube/v3/videos";
     url += `?id=${id}&key=${apiKey}`;
-    url += `&part=snippet,statistics,contentDetails`;
+    url += `&part=snippet,statistics,contentDetails,status`;
 
     try {
       const response = await fetch(url);
@@ -42,8 +45,6 @@ export default class Video {
       if (data.items.length == 0) throw new Error(`No video for ${id}`);
       const result = data.items[0];
 
-      console.log(result);
-
       // setting all the video properties from youtube data
       video.id = id;
       video.title = result.snippet.title;
@@ -53,6 +54,8 @@ export default class Video {
       video.language = result.snippet.defaultAudioLanguage;
       video.release = new Date(result.snippet.publishedAt);
       video.duration = result.contentDetails.duration;
+      video.sensitive = !result.status.embeddable;
+      video.childish = result.status.madeForKids;
 
       url = `https://www.googleapis.com/youtube/v3/channels`;
       url += `?part=snippet&id=${result.snippet.channelId}&key=${apiKey}`;
@@ -63,7 +66,7 @@ export default class Video {
           throw new Error(`YTGET(C) fail: ${response.statusText}`);
         const data = await response.json();
         if (data.items.length === 0)
-          throw new Error(`No channel for ${channelId}`);
+          throw new Error(`No channel for ${result.snippet.channelId}`);
         const avatarUrl = data.items[0].snippet.thumbnails.default.url;
 
         video.authorAvatar = avatarUrl;
@@ -79,7 +82,7 @@ export default class Video {
   }
 
   // checks if user saw this video
-  isSeenBy(user: User): boolean {
+  isSeenBy(user:types.User): boolean {
     return !!user.history.find((v) => v.id == this.id);
     // return this.views.includes(user.username)
   }
@@ -101,15 +104,16 @@ export default class Video {
    * @returns {Promise<number>} : the recommendability score component
    */
   async U(): Promise<number> {
-    let tournesol: Criterias = await new Promise((resolve, reject) => {
-      const criterias: Criterias = {};
+    let tournesol:types.Criterias = await new Promise((resolve, reject) => {
+      const criterias:types.Criterias = {};
 
       // will search video scores through Tournesol CSV file
-      const fileStream = fs.createReadStream("./tournesol.csv");
+      const csvPath = path.join(ROOT, "/assets/tournesol.csv")
+      const fileStream = fs.createReadStream(csvPath);
       Papa.parse(fileStream, {
         header: true, // will use first line to name columns
-        step: (result: { data: TournesolRow }) => {
-          const row = result.data as TournesolRow;
+        step: (result: { data: types.TournesolRow }) => {
+          const row = result.data as types.TournesolRow;
 
           // is one of the video criterias
           if (row.video === this.id) {
@@ -144,7 +148,7 @@ export default class Video {
    * @param {User} user : the platform end-user object
    * @returns {Promise<number>} : the appreciation score component
    */
-  async A(user: User): Promise<number> {
+  async A(user:types.User): Promise<number> {
     let proba = 0;
 
     if (user.following.length == 0 && user.history.length == 0) {
@@ -177,7 +181,7 @@ export default class Video {
    * @param {ScoreParams} params : a dictionnary of the lambda scalars
    * @returns {Promise<VideoScore>} : a dictionnary detailing the score
    */
-  async score(user: User, params: ScoreParams): Promise<VideoScore> {
+  async score(user:types.User, params:types.ScoreParams): Promise<types.VideoScore> {
     let res = 0;
     let parameters = { ...params };
 
