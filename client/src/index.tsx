@@ -18,7 +18,7 @@ function App() {
   const [selectedVideoScore, setSelectedVideoScore] = useState(defaults.defaultVideoScore);
   
   return (
-    <main className="h-screen flex flex-col">
+    <main className="h-screen overflow-hidden flex flex-col">
       <Menu />
       <div className="flex flex-1">
         <Sidebar scores={selectedVideoScore} />

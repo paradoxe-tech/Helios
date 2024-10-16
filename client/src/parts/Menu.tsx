@@ -11,7 +11,7 @@ export function Menu() {
           alt="Brand Logo"
           className="w-10 h-10"
         />
-        <span className="text-xl font-semibold text-gray-800">HeliaTube</span>
+        <span className="text-xl font-semibold text-gray-800">Dédale.tv</span>
       </div>
 
       <SearchField />
