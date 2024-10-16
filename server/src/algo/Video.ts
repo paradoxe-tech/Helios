@@ -19,7 +19,7 @@ async function preloadTournesol(csvPath:string) {
       header: true,
       step: (result:{data: types.TournesolRow}) => {
         const row = result.data;
-        if (row.video) {
+        if (row.video && row.criteria == "largely_recommended") {
           tournesolMap.set(row.video, {
             score: +row.score,
             uncertainty: +row.uncertainty,
@@ -132,13 +132,10 @@ export default class Video {
     const tournesol = tournesolMap.get(this.id);
 
     // if no tournesol data, set scalar to 0
-    if (!tournesol || !tournesol["largely_recommended"]) return -2;
-
-    // keep the sign while /100 and normalizing to [0,1]
-    let score = tournesol["largely_recommended"].score;
-    let sign = score > 0 ? 1 : -1;
-
-    return Norm.cut(Math.abs(score) / 100) * sign;
+    if (!tournesol || !tournesol.score) return -2;
+    let score = tournesol.score;
+    
+    return score > 0 ? Norm.cut(score / 100) : 0;
   }
 
   /**
