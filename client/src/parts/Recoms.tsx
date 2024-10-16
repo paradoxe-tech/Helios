@@ -19,13 +19,11 @@ export function Recoms({ setScores }) {
   }, []);
 
   return (
-    <div className="px-6 w-full py-4 min-h-screen bg-white">
+    <div className="px-6 w-full py-4 bg-white overflow-y-clip" style={{
+        height: "calc(100vh - 70px)"
+      }}>
       <div className="flex justify-between mb-3">
         <Tags tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />
-        <Switch>
-          <div className="indicator" />
-          Tournesol
-        </Switch>
       </div>
       <VideoGrid videos={videos} setScores={setScores}/>
     </div>
@@ -34,7 +32,7 @@ export function Recoms({ setScores }) {
 
 function VideoGrid({ videos, setScores }) {
   return (
-    <div className="flex flex-wrap gap-6">
+    <div className="flex flex-wrap gap-6 h-full overflow-y-scroll">
       {videos.map((videoData:types.VideoData, index: number) => {
         return (
           <VideoPreview

@@ -2,7 +2,7 @@ import { Icon } from './Icon'
 
 export function Sidebar({ scores }) {
   return (
-    <aside className="bg-white p-4 w-72 transition-all duration-300 shadow-md h-screen">
+    <aside className="bg-white p-4 w-72 transition-all duration-300">
       <nav className="vertical-menu">
         <ul className="space-y-2">
           <MenuItem icon="home" label="Recommandations" />
