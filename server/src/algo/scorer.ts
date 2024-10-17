@@ -72,13 +72,13 @@ export async function A(video:Video, user:types.User): Promise<number> {
 
   if (user.following.length == 0 && user.history.length == 0) return -2;
 
-  // user is following the author
-  if (user.following.includes(video.author)) proba += 0.5;
+  // user is following the channel
+  if (user.following.includes(video.channel)) proba += 0.5;
 
-  // user saw a lot of videos from the author
+  // user saw a lot of videos from the channel
   proba += Norm.minmax(
     user.history.filter((v) => {
-      return v.author == video.author && v.id !== video.id;
+      return v.channel == video.channel && v.id !== video.id;
     }).length, 0, 3, 0, 0.5,
   );
 

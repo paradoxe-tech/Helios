@@ -51,6 +51,7 @@ export default class Video {
   id!: string;
   title!: string;
   author!: string;
+  channel!: string;
   thumbnail!: string;
   language!: string;
   tags!: Array<string>;
@@ -123,6 +124,7 @@ export default class Video {
     this.id = ytvid.id;
     this.title = ytvid.snippet.title;
     this.author = ytvid.snippet.channelTitle;
+    this.channel = ytvid.snippet.customUrl;
     this.tags = ytvid.snippet.tags;
     this.thumbnail = ytvid.snippet.thumbnails.high.url;
     this.language = ytvid.snippet.defaultAudioLanguage;
