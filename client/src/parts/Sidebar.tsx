@@ -40,7 +40,7 @@ function ScoreBadge({ label, score, color }) {
 
 function MenuItem({ label, icon }) {
   return (
-    <li className="p-3 py-2 text-sm cursor-pointer hover:bg-gray-200 rounded-lg transition">
+    <li className="p-3 py-2 flex items-center text-sm cursor-pointer hover:bg-gray-200 rounded-lg transition">
       <Icon name={icon} className="pr-4"/>
       {label}
     </li>

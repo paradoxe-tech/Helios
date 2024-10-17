@@ -1,7 +1,8 @@
-export function Icon({ name, filled=false, size="lg", className="" }) {
+export function Icon({ name, filled=false, size="lg", className="", onClick="" }) {
   return (
-    <div className={`text-${size} align-middle inline fit-content ${className}`}>
-      <ion-icon name={name + (!filled ? "-outline" : "")}></ion-icon>
-    </div>
+    <ion-icon 
+      class={`text-${size} align-middle rounded-full p-2 inline-block fit-content ${className} cursor-pointer`}
+      onClick={onClick}
+      name={name + (!filled ? "-outline" : "")}></ion-icon>
   );
 }
