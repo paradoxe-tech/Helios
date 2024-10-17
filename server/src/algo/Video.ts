@@ -48,7 +48,7 @@ function flatten<T>(array: T[][]): T[] {
 await preloadTournesol(path.join(ROOT, "/assets/tournesol.csv"));
 
 export default class Video {
-  id: string;
+  id!: string;
   title!: string;
   author!: string;
   thumbnail!: string;
@@ -66,7 +66,7 @@ export default class Video {
   }
 
   static async request(ids: string[], apiKey:string): Promise<Video[]> {
-    let videos = await Promise.all(chunkArray(ids, 25).map(async subIds => {
+    let videos = await Promise.all(chunkArray(ids, 50).map(async subIds => {
       return await Video.request50max(subIds, apiKey);
     }))
 
@@ -77,8 +77,6 @@ export default class Video {
     let url = "https://youtube.googleapis.com/youtube/v3/videos";
     url += `?key=${apiKey}&id=${ids.join(',')}`;
     url += `&part=snippet,statistics,contentDetails,status`;
-
-    console.log(url)
 
     try {
       const response = await fetch(url);
@@ -138,95 +136,5 @@ export default class Video {
   isSeenBy(user:types.User): boolean {
     return !!user.history.find((v) => v.id == this.id);
     // return this.views.includes(user.username)
-  }
-
-  /**
-   * this method calculates the platform performance of the
-   * video, using metrics like : clicks/impression ratio,
-   * watchtime, comments, likes and followings (amongst others).
-   * @returns {Promise<number>} : the plaform performance component
-   */
-  async G(): Promise<number> {
-    return 0.5;
-  }
-
-  /**
-   * this method retrives the Tournesol recommandability bias
-   * by finding its value through the CSV database provided by
-   * the association on their website, using the video id.
-   * @returns {Promise<number>} : the recommendability score component
-   */
-  async U(): Promise<number> {
-    const tournesol = tournesolMap.get(this.id);
-
-    // if no tournesol data, set scalar to 0
-    if (!tournesol || !tournesol.score) return -2;
-    let score = tournesol.score;
-    
-    return score > 0 ? Norm.cut(score / 100) : 0;
-  }
-
-  /**
-   * this method gives the predicted end-user appreciation
-   * of the current video ; based on their inferred preferences,
-   * their followed channels and their recent activity on Helios.
-   * @param {User} user : the platform end-user object
-   * @returns {Promise<number>} : the appreciation score component
-   */
-  async A(user:types.User): Promise<number> {
-    let proba = 0;
-
-    if (user.following.length == 0 && user.history.length == 0) return -2;
-
-    // user is following the author
-    if (user.following.includes(this.author)) proba += 0.5;
-
-    // user saw a lot of videos from the author
-    proba += Norm.minmax(
-      user.history.filter((v) => {
-        return v.author == this.author && v.id !== this.id;
-      }).length, 0, 3, 0, 0.5,
-    );
-
-    // video is already seen by user
-    if (this.isSeenBy(user)) proba *= 0.2;
-
-    return Norm.cut(proba);
-  }
-
-  /**
-   * the final score is defined by a sum of the platform
-   * performance value (G), the recommendability score (U)
-   * and the predicted user appreciation (A) ; weighted by the
-   * lambda coefficients provided for each of these values.
-   * @param {User} user : the platform end-user object
-   * @param {ScoreParams} params : a dictionnary of the lambda scalars
-   * @returns {Promise<VideoScore>} : a dictionnary detailing the score
-   */
-  async score(user:types.User, params:types.ScoreParams): Promise<types.VideoScore> {
-    let res = 0;
-    let parameters = { ...params };
-
-    const [G, A, U] = await Promise.all([this.G(), this.A(user), this.U()]);
-
-    // update scalars if scores are not available
-    if (G == -2) parameters.lG = 0;
-    if (A == -2) parameters.lA = 0;
-    if (U == -2) parameters.lU = 0;
-
-    // scale each value by its prodived scalar
-    if (params.lG > 0) res += parameters.lG * G;
-    if (params.lU > 0) res += parameters.lU * U;
-    if (params.lA > 0) res += parameters.lA * A;
-
-    // defines the total as the sum of coefficients
-    let total = parameters.lG + parameters.lU + parameters.lA;
-
-    return {
-      platform_performance: G,
-      predicted_appreciation: A,
-      tournesol_recommendability: U,
-      score: total > 0 ? Norm.minmax(res, 0, total) : 0,
-    };
   }
 }

@@ -1,4 +1,5 @@
 import Video from "./Video";
+import * as scorer from "./scorer";
 import * as types from "../../../shared/types";
 
  /**
@@ -8,7 +9,13 @@ import * as types from "../../../shared/types";
  * @param {ScoreParams} params : dictionnary of the recommender parameters
  * @returns {Array<VideoData>} : a sorted list of scored video
  */
-async function recommend(vidIds: string[], n: number, user: types.User, params: types.ScoreParams): Promise<types.VideoData[]> {
+async function recommend(
+  vidIds: string[], 
+  n: number, 
+  user: types.User, 
+  params: types.ScoreParams
+): Promise<types.VideoData[]> {
+
   try {
     // fetch all videos in one batch request
     const videos = await Video.request(vidIds, process.env["YOUTUBE_API_KEY"]);
@@ -22,7 +29,7 @@ async function recommend(vidIds: string[], n: number, user: types.User, params: 
           if(!params.content_language.includes(video.language)) return null;
         }
 
-        const scores = await video.score(user, params);
+        const scores = await scorer.evaluate(video, user, params);
         return { video, scores };
       })
     );
