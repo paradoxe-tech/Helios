@@ -32,6 +32,18 @@ async function preloadTournesol(csvPath:string) {
   });
 }
 
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function flatten<T>(array: T[][]): T[] {
+  return array.reduce((acc, val) => acc.concat(val), []);
+}
+
 // preload CSV once when app starts
 await preloadTournesol(path.join(ROOT, "/assets/tournesol.csv"));
 
@@ -49,16 +61,24 @@ export default class Video {
   sensitive!: boolean;
   childish!: boolean;
 
-  constructor(id: string) {
-    this.id = id;
+  constructor() {
     this.views = [];
   }
 
-  static async create(id: string, apiKey: string): Promise<Video> {
-    let video = new Video(id);
-    let url = "https://www.googleapis.com/youtube/v3/videos";
-    url += `?id=${id}&key=${apiKey}`;
+  static async request(ids: string[], apiKey:string): Promise<Video[]> {
+    let videos = await Promise.all(chunkArray(ids, 25).map(async subIds => {
+      return await Video.request50max(subIds, apiKey);
+    }))
+
+    return flatten(videos)
+  }
+
+  static async request50max(ids: string[], apiKey: string): Promise<Video[]> {
+    let url = "https://youtube.googleapis.com/youtube/v3/videos";
+    url += `?key=${apiKey}&id=${ids.join(',')}`;
     url += `&part=snippet,statistics,contentDetails,status`;
+
+    console.log(url)
 
     try {
       const response = await fetch(url);
@@ -66,44 +86,52 @@ export default class Video {
         throw new Error(`YTGET(V) fail: ${response.statusText}`);
       const data = await response.json();
 
-      // if no items, video doesn't exist
-      if (data.items.length == 0) throw new Error(`No video for ${id}`);
-      const result = data.items[0];
+      if (data.items.length === 0) throw new Error(`No videos found`);
 
-      // setting all the video properties from youtube data
-      video.id = id;
-      video.title = result.snippet.title;
-      video.author = result.snippet.channelTitle;
-      video.tags = result.snippet.tags;
-      video.thumbnail = result.snippet.thumbnails.high.url;
-      video.language = result.snippet.defaultAudioLanguage;
-      video.release = new Date(result.snippet.publishedAt);
-      video.duration = result.contentDetails.duration;
-      video.sensitive = !result.status.embeddable;
-      video.childish = result.status.madeForKids;
+      const videos = await Promise.all(
+        data.items.map(async (result: any) => {
+          let video = new Video();
+          video.fill(result);
 
-      url = `https://www.googleapis.com/youtube/v3/channels`;
-      url += `?part=snippet&id=${result.snippet.channelId}&key=${apiKey}`;
+          let channelUrl = `https://www.googleapis.com/youtube/v3/channels`
+          channelUrl += `?part=snippet&id=${result.snippet.channelId}&key=${apiKey}`;
 
-      try {
-        const response = await fetch(url);
-        if (!response.ok)
-          throw new Error(`YTGET(C) fail: ${response.statusText}`);
-        const data = await response.json();
-        if (data.items.length === 0)
-          throw new Error(`No channel for ${result.snippet.channelId}`);
-        const avatarUrl = data.items[0].snippet.thumbnails.default.url;
+          try {
+            const channelResponse = await fetch(channelUrl);
+            if (!channelResponse.ok)
+              throw new Error(`YTGET(C) fail: ${channelResponse.statusText}`);
+            const channelData = await channelResponse.json();
 
-        video.avatar = avatarUrl;
-      } catch (error) {
-        video.avatar = "none";
-      }
+            if (channelData.items.length === 0)
+              throw new Error(`No channel for ${result.snippet.channelId}`);
+            const avatarUrl = channelData.items[0].snippet.thumbnails.default.url;
 
-      // a new Video instance will be returned
-      return video;
+            video.avatar = avatarUrl;
+          } catch (error) {
+            video.avatar = "none";
+          }
+
+          return video;
+        })
+      );
+
+      return videos;
     } catch (error) {
       throw new Error(`Error fetching video data: ${error}`);
     }
+  }
+
+  fill(ytvid) {
+    this.id = ytvid.id;
+    this.title = ytvid.snippet.title;
+    this.author = ytvid.snippet.channelTitle;
+    this.tags = ytvid.snippet.tags;
+    this.thumbnail = ytvid.snippet.thumbnails.high.url;
+    this.language = ytvid.snippet.defaultAudioLanguage;
+    this.release = new Date(ytvid.snippet.publishedAt);
+    this.duration = ytvid.contentDetails.duration;
+    this.sensitive = !ytvid.status.embeddable;
+    this.childish = ytvid.status.madeForKids;
   }
 
   // checks if user saw this video
