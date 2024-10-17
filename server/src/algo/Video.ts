@@ -129,7 +129,7 @@ export default class Video {
     this.thumbnail = ytvid.snippet.thumbnails.high.url;
     this.language = ytvid.snippet.defaultAudioLanguage;
     this.release = new Date(ytvid.snippet.publishedAt);
-    this.duration = ytvid.contentDetails.duration;
+    this.duration = parseDuration(ytvid.contentDetails.duration);
     this.sensitive = !ytvid.status.embeddable;
     this.childish = ytvid.status.madeForKids;
   }
@@ -139,4 +139,21 @@ export default class Video {
     return !!user.history.find((v) => v.id == this.id);
     // return this.views.includes(user.username)
   }
+}
+
+function parseDuration(duration: string): string {
+  const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
+  const matches = duration.match(regex);
+
+  const hours = parseInt(matches?.[1] || '0', 10);
+  const minutes = parseInt(matches?.[2] || '0', 10);
+  const seconds = parseInt(matches?.[3] || '0', 10);
+
+  const formatted = [
+    hours > 0 ? String(hours).padStart(2, '0') : null,
+    String(minutes).padStart(2, '0'),
+    String(seconds).padStart(2, '0')
+  ].filter(Boolean).join(':');
+
+  return formatted;
 }
