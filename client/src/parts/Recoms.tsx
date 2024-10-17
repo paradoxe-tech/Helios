@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { VideoPreview } from "./VideoPreview";
 import { Tags } from "./Tags";
-import { Switch } from "../aria/Switch";
+import { Parameters } from "./Parameters";
 import * as types from '../../../shared/types';
 import * as defaults from '../../../shared/defaults';
 
@@ -10,6 +10,7 @@ const tags = defaults.tags;
 export function Recoms({ setScores }) {
   const [selectedTag, setSelectedTag] = useState("Tout");
   const [videos, setVideos] = useState<types.VideoData[]>([]);
+  const [parameters, setParameters] = useState(defaults.defaultScoreParams);
 
   useEffect(() => {
     fetch("/api/videos/50")
@@ -22,8 +23,9 @@ export function Recoms({ setScores }) {
     <div className="px-6 w-full py-4 bg-white overflow-y-clip" style={{
         height: "calc(100vh - 70px)"
       }}>
-      <div className="flex justify-between mb-3">
+      <div className="flex justify-between mb-3 items-center">
         <Tags tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />
+        <Parameters parameters={parameters} setParameters={setParameters} />
       </div>
       <VideoGrid videos={videos} setScores={setScores}/>
     </div>
