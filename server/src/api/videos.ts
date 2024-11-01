@@ -3,24 +3,32 @@ import randsubset from '../algo/randsubset';
 import * as defaults from "../../../shared/defaults";
 import fs from 'fs';
 import path from 'path';
+import getUser from "../data/getUser";
 
-export default function run(app, ROOT:string) {
-  app.get("/api/videos/:n", async (req, res) => {
+export default function run(app, ROOT:string, database) {
+  app.get("/api/videos/:username/:n", async (req, res) => {
     let n = +req.params.n ? +req.params.n : 50;
 
-    let _videosIds = fs.readFileSync(
-      path.join(ROOT, "assets/videos.txt"), { encoding: "utf-8" }
-    ).split("\n");
+    try {
+      let user = await getUser(database, req.params.username);
 
-    const u = Math.floor(_videosIds.length * 0.95)
-    _videosIds = Array.from(randsubset(_videosIds, n, u));
+      let _videosIds = fs.readFileSync(
+        path.join(ROOT, "assets/videos.txt"), { encoding: "utf-8" }
+      ).split("\n");
 
-    let videos = await recommend(
-      _videosIds, n,
-      defaults.devUser,
-      defaults.defaultScoreParams,
-    );
+      const u = Math.floor(_videosIds.length * 0.95)
+      _videosIds = Array.from(randsubset(_videosIds, n, u));
 
-    res.json(videos);
+      let videos = await recommend(
+        _videosIds, n,
+        user,
+        defaults.defaultScoreParams, // to be changed to user's params
+      );
+
+      res.json(videos);
+    } catch(err) {
+      res.status(500).send("Erreur lors de la récupération de l'utilisateur.");
+      return null;
+    }
   });
 }
