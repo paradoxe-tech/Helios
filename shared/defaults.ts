@@ -1,4 +1,4 @@
-import * as types from "../../../shared/types";
+import * as types from "./types";
 
 export const defaultScoreParams: types.ScoreParams = {
   lU: 1,
