@@ -13,7 +13,7 @@ export function Recoms({ setScores }) {
   const [parameters, setParameters] = useState(defaults.defaultScoreParams);
 
   useEffect(() => {
-    fetch("/api/videos/50")
+    fetch("/api/videos/dev/50")
       .then((response) => response.json())
       .then((data) => setVideos(data))
       .catch((error) => console.error("Error fetching videos:", error));
